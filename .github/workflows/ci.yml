@@ -1,0 +1,45 @@
+name: Validate scripts
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  portable-tools:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ghostscript poppler-utils php-cli shellcheck
+          python -m pip install -r requirements.txt
+      - name: Validate and test
+        run: |
+          bash -n compress_pdf.sh merge_pdfs.sh tests/test_shell.sh
+          shellcheck compress_pdf.sh merge_pdfs.sh tests/test_shell.sh
+          php -l update_file_timestamp_for_ftp.php
+          bash tests/test_shell.sh
+          python -m unittest discover -s tests -v
+  windows-audit:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          ./tests/test_powershell.ps1
+          ./tests/test_teams.ps1
+      - name: PowerShell 7
+        shell: pwsh
+        run: |
+          ./tests/test_powershell.ps1
+          ./tests/test_teams.ps1
