@@ -108,6 +108,7 @@ function Test-CommandAvailable { param($Name) $false }
     & $hostExe -NoProfile -ExecutionPolicy Bypass -File $dispatcherCopy -OutputDirectory (Join-Path $workspace 'failure-output')
 
     Assert-True ($LASTEXITCODE -eq 1) 'Dispatcher must propagate audit failure.'
+    $global:LASTEXITCODE = 0
     Write-Host 'PowerShell regression tests passed.'
 }
 finally {
