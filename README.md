@@ -5,6 +5,7 @@ audits, Microsoft Teams membership, and file timestamps.
 
 | Script | Purpose | Requirements |
 | --- | --- | --- |
+| `DriverCheck.ps1` | Audit drivers and optionally query Windows Update | Windows, PowerShell 5.1 or 7; no external modules |
 | `compress_pdf.sh` | Compress copies of PDFs | Bash 4.4+, GNU utilities, Ghostscript |
 | `merge_pdfs.sh` | Merge PDFs by filename group | Bash 4.4+, GNU utilities, Poppler or Ghostscript |
 | `extract_exercises.py` | Extract whole exercise pages by chapter | Python 3.10+, dependencies in `requirements.txt` |
@@ -48,6 +49,31 @@ python extract_exercises.py textbook.pdf --output-dir exercises_output
 
 Use `--help` for optional arguments. Originals are retained and outputs are
 written to separate directories.
+
+### Driver inventory
+
+```powershell
+.\DriverCheck.ps1
+.\DriverCheck.ps1 -CheckUpdates
+.\DriverCheck.ps1 -ThirdPartyOnly -CheckUpdates -CsvPath .\drivers.csv -JsonPath .\drivers.json
+Get-Help .\DriverCheck.ps1 -Detailed
+```
+
+DriverCheck is read-only: it does not install/download/remove drivers or change
+Windows Update policy. `-CheckUpdates` queries the configured update service,
+which can be controlled by organizational policy or WSUS. `No update` means a
+completed scan found no confidently matched offered package; it does not prove
+that no newer vendor release exists. `Not checked` and `Scan failed` are distinct.
+Historical inbox driver dates alone do not indicate an outdated driver.
+
+Exit codes: 0 = success, no newer matched package; 1 = fatal/export error;
+2 = newer matched package; 3 = incomplete/failed update scan. Review exports for
+machine identifiers, usernames and internal addresses before sharing them.
+DriverCheck is independent of Microsoft and hardware vendors.
+
+`tests/test_drivercheck.ps1` checks parsing and deterministic helpers without
+running inventory, contacting Windows Update or needing administrator rights.
+The repository MIT license preserves the DriverCheck contributors' attribution.
 
 ### Windows maintenance
 
